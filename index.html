@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Meta Ads Advisor • Clydeside Social</title>
   <meta name="description" content="Review a live Meta ads campaign or plan a new one. Get recommendations, creative tests, and KPI targets."/>
-  <!-- Cache-busting hints -->
+  <!-- Cache-busting -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <meta http-equiv="Pragma" content="no-cache"/>
   <meta http-equiv="Expires" content="0"/>
@@ -67,14 +67,6 @@
     }
     footer{margin-top:16px; text-align:center; font-size:.85rem; opacity:.75}
     #live{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
-
-    /* Print only results */
-    @media print{
-      body{background:#fff; padding:0}
-      .tabs, .card > :not(.out), .exportbar, footer, .logo, h1, .muted{ display:none !important; }
-      .out{ border:0; box-shadow:none; margin:0; border-radius:0; }
-      .out h3{ margin-top:0 }
-    }
   </style>
 </head>
 <body>
@@ -90,6 +82,14 @@
 
     <!-- REVIEW MODE -->
     <div class="card" id="tab_review">
+      <label for="r_objective">Campaign type</label>
+      <select id="r_objective">
+        <option value="traffic">Traffic</option>
+        <option value="leads">Leads</option>
+        <option value="sales">Sales</option>
+        <option value="email">Email list growth</option>
+      </select>
+
       <div class="row">
         <div>
           <label for="r_cpm">CPM (£)</label>
@@ -120,11 +120,11 @@
           <input type="number" id="r_conv" step="1">
         </div>
       </div>
+      <div id="r_roasBlock" class="hide">
+        <label for="r_roas">ROAS (%)</label>
+        <input type="number" id="r_roas" step="0.1">
+      </div>
       <div class="row">
-        <div>
-          <label for="r_roas">ROAS (%)</label>
-          <input type="number" id="r_roas" step="0.1">
-        </div>
         <div>
           <label for="r_pixel">Pixel + CAPI?</label>
           <select id="r_pixel">
@@ -133,12 +133,14 @@
             <option value="unknown">Not sure</option>
           </select>
         </div>
+        <div>
+          <label for="r_audience">Audience type</label>
+          <select id="r_audience">
+            <option value="cold">Cold</option>
+            <option value="warm">Warm</option>
+          </select>
+        </div>
       </div>
-      <label for="r_audience">Audience type</label>
-      <select id="r_audience">
-        <option value="cold">Cold</option>
-        <option value="warm">Warm</option>
-      </select>
 
       <button class="cta" id="reviewBtn">Get diagnosis & next steps</button>
 
@@ -151,11 +153,9 @@
         <h3>Diagnosis</h3>
         <p id="review_summary"></p>
         <div id="review_pills"></div>
-
         <div class="kpi">
           <h3>Recommended next tests</h3>
           <ul id="review_tests" class="tips"></ul>
-          <p class="note">Benchmarks vary by market and season (Q4 can raise CPMs). Treat these as friendly guardrails, not guarantees.</p>
         </div>
       </div>
     </div>
@@ -173,47 +173,25 @@
       <div class="row">
         <div>
           <label for="p_budget">Daily budget (£)</label>
-          <input type="number" id="p_budget" min="0" step="1" placeholder="e.g. 30"/>
+          <input type="number" id="p_budget" min="0" step="1"/>
         </div>
         <div>
           <label for="p_days">Campaign length (days)</label>
-          <input type="number" id="p_days" min="1" step="1" placeholder="e.g. 14"/>
+          <input type="number" id="p_days" min="1" step="1"/>
         </div>
       </div>
 
       <label>Creative types (tick any)</label>
-      <div class="checks" id="p_creatives">
+      <div class="checks">
         <label><input type="checkbox" id="pc_image"> Image</label>
         <label><input type="checkbox" id="pc_carousel"> Carousel</label>
         <label><input type="checkbox" id="pc_reel"> Reel / Video</label>
         <label><input type="checkbox" id="pc_story"> Stories</label>
       </div>
 
-      <!-- Conditional fields -->
-      <div id="p_trafficFields" class="hide">
-        <label for="p_optimise">Optimise for</label>
-        <select id="p_optimise">
-          <option value="lpv">Landing Page Views</option>
-          <option value="clicks">Link Clicks</option>
-        </select>
-      </div>
-      <div id="p_leadFields" class="hide">
-        <label for="p_leadMethod">Lead method</label>
-        <select id="p_leadMethod">
-          <option value="instant">Instant Form</option>
-          <option value="website">Website form</option>
-        </select>
-      </div>
       <div id="p_salesFields" class="hide">
         <label for="p_roas">Target ROAS goal (%)</label>
-        <input type="number" id="p_roas" min="0" step="0.1" placeholder="e.g. 300"/>
-      </div>
-      <div id="p_emailFields" class="hide">
-        <label for="p_welcome">Welcome + thank-you automation?</label>
-        <select id="p_welcome">
-          <option value="yes">Yes</option>
-          <option value="no">No</option>
-        </select>
+        <input type="number" id="p_roas" min="0" step="0.1"/>
       </div>
 
       <button class="cta" id="planBtn">Get plan</button>
@@ -227,17 +205,13 @@
         <h3>Recommended campaign</h3>
         <p id="p_campaign" class="muted"></p>
         <div class="hr"></div>
-
         <h3>Creative plan</h3>
         <p id="p_plan"></p>
-
         <h3>Quick tips</h3>
         <ul id="p_tips" class="tips"></ul>
-
         <div class="kpi">
           <h3>KPI Watchlist</h3>
           <ul id="p_kpis" class="tips"></ul>
-          <p class="note">Beginner-friendly targets. Expect seasonal shifts (e.g., Black Friday/Q4).</p>
         </div>
       </div>
     </div>
@@ -245,168 +219,91 @@
     <footer>© Clydeside Social</footer>
   </div>
 
-  <!-- a11y live region -->
-  <div id="live" aria-live="polite"></div>
-
   <script>
-    const $ = id => document.getElementById(id);
-    const show = el => el.classList.remove('hide');
-    const hide = el => el.classList.add('hide');
+    const $=id=>document.getElementById(id), show=el=>el.classList.remove('hide'), hide=el=>el.classList.add('hide');
 
     // Tabs
-    const tabButtons = document.querySelectorAll('.tabbtn');
-    const tabs = { review: $('tab_review'), plan: $('tab_plan') };
-    tabButtons.forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        tabButtons.forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tabbtn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
-        const key = btn.dataset.tab;
-        Object.values(tabs).forEach(hide);
-        show(tabs[key]);
+        hide($('tab_review')); hide($('tab_plan'));
+        show($('tab_'+btn.dataset.tab));
       });
     });
 
-    // Conditional Plan fields
-    const pObj = $('p_objective');
-    const pBlocks = {
-      traffic: $('p_trafficFields'),
-      leads: $('p_leadFields'),
-      sales: $('p_salesFields'),
-      email: $('p_emailFields'),
-    };
-    function syncPlanBlocks(){
-      Object.values(pBlocks).forEach(hide);
-      const v = pObj.value;
-      if (pBlocks[v]) show(pBlocks[v]);
-    }
-    pObj.addEventListener('change', syncPlanBlocks);
-    syncPlanBlocks();
+    // Show ROAS only for Sales review
+    $('r_objective').addEventListener('change',()=>{
+      if($('r_objective').value==='sales') show($('r_roasBlock')); else hide($('r_roasBlock'));
+    });
 
-    // Diagnosis for Review
-    function diagnose(obj){
-      const pills=[]; const tests=[];
-      const cpm=+$('r_cpm').value||null;
-      const ctr=+$('r_ctr').value||null;
-      const freq=+$('r_freq').value||null;
-      const cpc=+$('r_cpc').value||null;
-      const spend=+$('r_spend').value||null;
-      const conv=+$('r_conv').value||null;
-      const roas=+$('r_roas').value||null;
-      const pixel=$('r_pixel').value;
-      const audience=$('r_audience').value;
+    function pill(label,state){const s=document.createElement('span');s.className=`pill ${state}`;s.textContent=label;return s;}
 
-      if(cpm){ if(cpm<=10)pills.push(pill(`CPM £${cpm.toFixed(2)} ✓`,'good'));
-        else if(cpm<=15)pills.push(pill(`CPM £${cpm.toFixed(2)} watch`,'warn'));
-        else pills.push(pill(`CPM £${cpm.toFixed(2)} high`,'bad')); }
-      if(ctr){ if(ctr>=3)pills.push(pill(`CTR ${ctr}% good`,'good'));
-        else if(ctr>=1)pills.push(pill(`CTR ${ctr}% ok`,'warn'));
-        else pills.push(pill(`CTR ${ctr}% low`,'bad')); }
-      if(cpc){ if(cpc<=1)pills.push(pill(`CPC £${cpc.toFixed(2)} ✓`,'good'));
-        else if(cpc<=2)pills.push(pill(`CPC £${cpc.toFixed(2)} watch`,'warn'));
-        else pills.push(pill(`CPC £${cpc.toFixed(2)} high`,'bad')); }
-      if(freq){ if(freq<=3)pills.push(pill(`Freq ${freq.toFixed(1)} ✓`,'good'));
-        else pills.push(pill(`Freq ${freq.toFixed(1)} rotate creative`,'warn')); }
-      if(obj==='sales' && roas){
-        if(roas>=300)pills.push(pill(`ROAS ${roas}% ✓`,'good'));
-        else if(roas>=150)pills.push(pill(`ROAS ${roas}% mid`,'warn'));
-        else pills.push(pill(`ROAS ${roas}% low`,'bad'));
-      }
-      if((obj==='leads'||obj==='email') && conv && spend){
-        const cpa=spend/conv;
-        if(cpa<=10)pills.push(pill(`CPL £${cpa.toFixed(2)} ✓`,'good'));
-        else if(cpa<=20)pills.push(pill(`CPL £${cpa.toFixed(2)} ok`,'warn'));
-        else pills.push(pill(`CPL £${cpa.toFixed(2)} high`,'bad'));
-      }
-      if(pixel==='yes')pills.push(pill('Pixel+CAPI ok','good'));
-      if(pixel==='no'){pills.push(pill('Pixel missing','bad'));
-        tests.push('Set up Pixel + CAPI and verify key events.');}
-
-      // Audience-specific advice
-      if(audience==='cold' && ctr<1){ tests.push('Cold audience + low CTR: sharpen hooks or test more relevant segments.'); }
-      if(audience==='warm' && ctr<1){ tests.push('Warm audience + low CTR: refresh creative/copy, messaging may be stale.'); }
-
-      tests.push('Test copy, creative and CTA variations systematically.');
-      if(freq>3 && (!conv||conv==0)){ tests.push('High frequency + low results: rotate creatives and reset learning.'); }
-
-      return {pills, tests};
-    }
-    function pill(label,state){
-      const span=document.createElement('span');
-      span.className=`pill ${state}`; span.textContent=label; return span;
-    }
-
+    // Review diagnosis
     $('reviewBtn').addEventListener('click',()=>{
       const obj=$('r_objective').value;
-      const d=diagnose(obj);
-      $('review_summary').textContent='Based on inputs, here are the signals and next steps:';
-      const pillBox=$('review_pills'); pillBox.innerHTML='';
-      d.pills.forEach(p=>pillBox.appendChild(p));
-      const ul=$('review_tests'); ul.innerHTML='';
-      [...new Set(d.tests)].forEach(t=>{const li=document.createElement('li'); li.textContent=t; ul.appendChild(li);});
+      const cpm=+$('r_cpm').value||null, ctr=+$('r_ctr').value||null, freq=+$('r_freq').value||null;
+      const cpc=+$('r_cpc').value||null, spend=+$('r_spend').value||null, conv=+$('r_conv').value||null;
+      const roas=+$('r_roas').value||null, pixel=$('r_pixel').value, audience=$('r_audience').value;
+
+      const pills=[], tests=[];
+
+      if(cpm){ if(cpm<=10)pills.push(pill(`CPM £${cpm.toFixed(2)} ✓`,'good')); else if(cpm<=15)pills.push(pill(`CPM £${cpm.toFixed(2)} watch`,'warn')); else pills.push(pill(`CPM £${cpm.toFixed(2)} high`,'bad')); }
+      if(ctr){ if(ctr>=3)pills.push(pill(`CTR ${ctr}% good`,'good')); else if(ctr>=1)pills.push(pill(`CTR ${ctr}% ok`,'warn')); else pills.push(pill(`CTR ${ctr}% low`,'bad')); }
+      if(cpc){ if(cpc<=1)pills.push(pill(`CPC £${cpc.toFixed(2)} ✓`,'good')); else if(cpc<=2)pills.push(pill(`CPC £${cpc.toFixed(2)} watch`,'warn')); else pills.push(pill(`CPC £${cpc.toFixed(2)} high`,'bad')); }
+      if(freq){ if(freq<=3)pills.push(pill(`Freq ${freq.toFixed(1)} ✓`,'good')); else pills.push(pill(`Freq ${freq.toFixed(1)} high`,'warn')); }
+
+      if(obj==='sales' && roas){ if(roas>=300)pills.push(pill(`ROAS ${roas}% ✓`,'good')); else if(roas>=150)pills.push(pill(`ROAS ${roas}% mid`,'warn')); else pills.push(pill(`ROAS ${roas}% low`,'bad')); }
+
+      if((obj==='leads'||obj==='email') && conv && spend){ const cpa=spend/conv; if(cpa<=10)pills.push(pill(`CPL £${cpa.toFixed(2)} ✓`,'good')); else if(cpa<=20)pills.push(pill(`CPL £${cpa.toFixed(2)} ok`,'warn')); else pills.push(pill(`CPL £${cpa.toFixed(2)} high`,'bad')); }
+
+      if(pixel==='no'){pills.push(pill('Pixel missing','bad')); tests.push('Set up Pixel + CAPI and verify key events.');}
+
+      if(audience==='cold'&&ctr<1){tests.push('Cold audience + low CTR: sharpen hooks or test more relevant segments.');}
+      if(audience==='warm'&&ctr<1){tests.push('Warm audience + low CTR: refresh creative/copy, messaging may be stale.');}
+
+      tests.push('Manually test copy, creative and CTA variations (no Advantage+).');
+
+      $('review_summary').textContent='Based on your inputs:';
+      const pb=$('review_pills'); pb.innerHTML=''; pills.forEach(p=>pb.appendChild(p));
+      const ul=$('review_tests'); ul.innerHTML=''; tests.forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li);});
+
       show($('review_out')); show($('review_export'));
     });
 
     // Plan
-    function getPlan(){
-      const obj=$('p_objective').value;
-      const budget=+$('p_budget').value||0;
-      const days=+$('p_days').value||0;
-      const creatives=[
-        $('pc_image').checked?'Image':null,
-        $('pc_carousel').checked?'Carousel':null,
-        $('pc_reel').checked?'Reel/Video':null,
-        $('pc_story').checked?'Stories':null].filter(Boolean);
-      const optimiseFor=$('p_optimise')?.value||null;
-      const leadMethod=$('p_leadMethod')?.value||null;
-      const roasGoal=+$('p_roas').value||0;
-      const welcome=$('p_welcome')?.value||null;
-
-      let campaignType=''; const tips=[];
-      if(obj==='traffic'){campaignType=(optimiseFor==='clicks')?'Traffic (Link Clicks)':'Traffic (LPV)';
-        tips.push('Make landing page fast + clear.'); tips.push('Use strong CTA.');}
-      if(obj==='leads'){campaignType=(leadMethod==='instant')?'Lead Gen (Instant Form)':'Leads to Website';
-        tips.push('Offer clear value (guide/discount).'); tips.push('Keep forms short.');}
-      if(obj==='sales'){campaignType='Sales / Conversions';
-        tips.push('Verify Pixel + CAPI.'); tips.push('Test copy/creative/CTA.'); if(roasGoal)tips.push(`Aim for ROAS ≈ ${roasGoal}%.`);}
-      if(obj==='email'){campaignType='Leads (List Growth)';
-        tips.push('Provide a useful lead magnet.'); if(welcome==='no')tips.push('Set up a welcome automation.');}
-
-      if(budget<10 && days<28){tips.push('For first campaigns, aim ≥£10/day and 21–28 days to allow testing.');}
-
-      const adSets=budget>=60?2:1;
-      const variants=creatives.length?Math.min(5,creatives.length*2):3;
-      const plan=`Run ${adSets} ad set${adSets>1?'s':''} with ${variants} variants across ${creatives.length?creatives.join(', '):'multiple formats'}.
-Ensure creative is resized for Stories and all placements.`;
-
-      const kpis=['Frequency ≤3; if over with no results → refresh creatives.',
-                  'CPM aim <£10 (expect peaks Q4).'];
-      if(obj!=='sales'){kpis.push('CTR warm ≥3%; cold ≥1%.');}
-      else{ kpis.push('ROAS: set goal (e.g. 300%) and give 3–7 days.');}
-
-      return {campaignType, plan, tips, kpis};
-    }
     $('planBtn').addEventListener('click',()=>{
-      const r=getPlan();
-      $('p_campaign').textContent=r.campaignType;
-      $('p_plan').textContent=r.plan;
-      const tipsUl=$('p_tips'); tipsUl.innerHTML='';
-      r.tips.forEach(t=>{const li=document.createElement('li'); li.textContent=t; tipsUl.appendChild(li);});
-      const kpiUl=$('p_kpis'); kpiUl.innerHTML='';
-      r.kpis.forEach(k=>{const li=document.createElement('li'); li.textContent=k; kpiUl.appendChild(li);});
+      const obj=$('p_objective').value, budget=+$('p_budget').value||0, days=+$('p_days').value||0;
+      const creatives=['pc_image','pc_carousel','pc_reel','pc_story'].map(id=>$(''+id).checked?$(id).nextSibling.textContent.trim():null).filter(Boolean);
+      const roasGoal=+$('p_roas').value||0;
+      let tips=[], plan='', kpis=[];
+
+      let campaignType='';
+      if(obj==='traffic'){campaignType='Traffic';tips.push('Make landing page fast and clear.');}
+      if(obj==='leads'){campaignType='Leads';tips.push('Offer clear value exchange (guide/discount).');}
+      if(obj==='sales'){campaignType='Sales / Conversions';tips.push('Verify Pixel + CAPI before scaling.');if(roasGoal)tips.push(`Aim for ROAS ≈ ${roasGoal}%.`);}
+      if(obj==='email'){campaignType='List Growth';tips.push('Give a useful lead magnet + welcome automation.');}
+
+      if(budget<10&&days<28){tips.push('First campaigns: aim for £10/day and 21–28 days to allow testing.');}
+
+      if(budget<30){plan='Start with 2 creatives, and have a 3rd ready to swap in if performance dips.';}
+      else{plan='Run 2–3 creatives to start, and keep one extra in reserve for testing.';}
+      plan+=`\nEnsure creative is resized for Stories and all placements.`;
+
+      kpis=['Frequency ≤3; refresh creative if higher with no results.','CPM target <£10 (expect higher in Q4).'];
+      if(obj!=='sales'){kpis.push('CTR warm ≥3%; cold ≥1%.');}else{kpis.push('ROAS: set goal (e.g. 300%) and allow 3–7 days for learning.');}
+
+      $('p_campaign').textContent=campaignType; $('p_plan').textContent=plan;
+      const tUl=$('p_tips'); tUl.innerHTML=''; tips.forEach(t=>{const li=document.createElement('li');li.textContent=t;tUl.appendChild(li);});
+      const kUl=$('p_kpis'); kUl.innerHTML=''; kpis.forEach(k=>{const li=document.createElement('li');li.textContent=k;kUl.appendChild(li);});
+
       show($('plan_out')); show($('plan_export'));
     });
 
-    // Export helpers
-    function collectText(container){
-      const lines=[]; container.querySelectorAll('h3,p,li,.pill').forEach(el=>{const t=el.textContent.trim(); if(t)lines.push(t);});
-      return lines.join('\n');
-    }
-    async function copyResults(container){
-      const txt=collectText(container).trim(); if(!txt){alert('No results.');return;}
-      try{await navigator.clipboard.writeText(txt); alert('Results copied ✅');}
-      catch{alert('Copy failed');}
-    }
-    function printSection(container){ if(container.classList.contains('hide')){alert('Generate results first.');return;} window.print();}
+    // Export (copy + print)
+    function collectText(c){const lines=[];c.querySelectorAll('h3,p,li,.pill').forEach(el=>{const t=el.textContent.trim();if(t)lines.push(t);});return lines.join('\n');}
+    async function copyResults(c){const txt=collectText(c).trim();if(!txt){alert('No results.');return;}await navigator.clipboard.writeText(txt);alert('Copied ✅');}
+    function printSection(c){if(c.classList.contains('hide')){alert('Generate results first.');return;}window.print();}
     $('review_copy').addEventListener('click',()=>copyResults($('review_out')));
     $('plan_copy').addEventListener('click',()=>copyResults($('plan_out')));
     $('review_pdf').addEventListener('click',()=>printSection($('review_out')));
@@ -414,4 +311,5 @@ Ensure creative is resized for Stories and all placements.`;
   </script>
 </body>
 </html>
+
 
