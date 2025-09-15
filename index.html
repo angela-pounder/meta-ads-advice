@@ -37,10 +37,9 @@
       border-radius:var(--radius); padding:22px; box-shadow:var(--shadow);
     }
     label{display:block; font-weight:bold; margin:12px 0 6px}
-    input[type="number"], input[type="text"], select, textarea{
+    input[type="number"], select{
       width:100%; padding:12px; border:1px solid #ddd; border-radius:12px; background:#fff; font-family:inherit;
     }
-    textarea{min-height:110px; resize:vertical}
     .row{display:grid; grid-template-columns:1fr 1fr; gap:14px}
     .checks{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px}
     .checks label{font-weight:normal; display:flex; align-items:center; gap:8px; margin:0}
@@ -61,9 +60,7 @@
     .good{background:var(--good)} .warn{background:var(--warn)} .bad{background:var(--bad)}
     .hide{display:none}
     .hr{height:1px; background:var(--line); margin:14px 0}
-    .exportbar{
-      display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;
-    }
+    .exportbar{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
     .ghost{
       border:2px solid var(--pink); background:#fff; color:var(--pink);
       padding:10px 14px; border-radius:999px; font-weight:bold; cursor:pointer;
@@ -71,7 +68,7 @@
     footer{margin-top:16px; text-align:center; font-size:.85rem; opacity:.75}
     #live{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
 
-    /* Print only the results area */
+    /* Print only results */
     @media print{
       body{background:#fff; padding:0}
       .tabs, .card > :not(.out), .exportbar, footer, .logo, h1, .muted{ display:none !important; }
@@ -95,46 +92,53 @@
     <div class="card" id="tab_review">
       <div class="row">
         <div>
-          <label for="r_objective">Objective</label>
-          <select id="r_objective">
-            <option value="traffic">Traffic</option>
-            <option value="leads">Leads</option>
-            <option value="sales">Sales</option>
-            <option value="email">Email list growth</option>
-          </select>
+          <label for="r_cpm">CPM (£)</label>
+          <input type="number" id="r_cpm" step="0.01" required>
         </div>
         <div>
-          <label for="r_budget">Daily budget (£)</label>
-          <input type="number" id="r_budget" min="0" step="1" placeholder="e.g. 30"/>
+          <label for="r_ctr">CTR (link %)</label>
+          <input type="number" id="r_ctr" step="0.1" required>
         </div>
       </div>
-
-      <label for="r_metrics">Paste your key metrics (quick paste or type)</label>
-      <textarea id="r_metrics" placeholder="Examples:
-CPM: 9.50
-CTR(link): 0.8%
-CPC: 1.20
-Frequency: 3.6
-Spend: 210
-Conversions: 2
-CPA/CPL: 18.00
-ROAS: 180%
-Pixel+CAPI: yes"></textarea>
-
       <div class="row">
         <div>
-          <label for="r_days">Campaign length so far (days)</label>
-          <input type="number" id="r_days" min="1" step="1" placeholder="e.g. 10"/>
+          <label for="r_freq">Frequency</label>
+          <input type="number" id="r_freq" step="0.1" required>
         </div>
         <div>
-          <label for="r_pixel">Pixel + CAPI configured?</label>
+          <label for="r_cpc">CPC (£)</label>
+          <input type="number" id="r_cpc" step="0.01" required>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="r_spend">Spend (£)</label>
+          <input type="number" id="r_spend" step="0.01">
+        </div>
+        <div>
+          <label for="r_conv">Conversions</label>
+          <input type="number" id="r_conv" step="1">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="r_roas">ROAS (%)</label>
+          <input type="number" id="r_roas" step="0.1">
+        </div>
+        <div>
+          <label for="r_pixel">Pixel + CAPI?</label>
           <select id="r_pixel">
-            <option value="unknown">Not sure</option>
             <option value="yes">Yes</option>
             <option value="no">No</option>
+            <option value="unknown">Not sure</option>
           </select>
         </div>
       </div>
+      <label for="r_audience">Audience type</label>
+      <select id="r_audience">
+        <option value="cold">Cold</option>
+        <option value="warm">Warm</option>
+      </select>
 
       <button class="cta" id="reviewBtn">Get diagnosis & next steps</button>
 
@@ -205,7 +209,7 @@ Pixel+CAPI: yes"></textarea>
         <input type="number" id="p_roas" min="0" step="0.1" placeholder="e.g. 300"/>
       </div>
       <div id="p_emailFields" class="hide">
-        <label for="p_welcome">Welcome + thank-you automation in place?</label>
+        <label for="p_welcome">Welcome + thank-you automation?</label>
         <select id="p_welcome">
           <option value="yes">Yes</option>
           <option value="no">No</option>
@@ -245,7 +249,6 @@ Pixel+CAPI: yes"></textarea>
   <div id="live" aria-live="polite"></div>
 
   <script>
-    // Tiny helpers
     const $ = id => document.getElementById(id);
     const show = el => el.classList.remove('hide');
     const hide = el => el.classList.add('hide');
@@ -263,7 +266,7 @@ Pixel+CAPI: yes"></textarea>
       });
     });
 
-    // Conditional blocks (Plan)
+    // Conditional Plan fields
     const pObj = $('p_objective');
     const pBlocks = {
       traffic: $('p_trafficFields'),
@@ -279,266 +282,136 @@ Pixel+CAPI: yes"></textarea>
     pObj.addEventListener('change', syncPlanBlocks);
     syncPlanBlocks();
 
-    // Review: parse pasted metrics
-    function parseMetrics(text){
-      const out = {};
-      text.split(/\n/).forEach(line=>{
-        const l = line.trim();
-        if(!l) return;
-        const kv = l.split(/[:\-]/,2);
-        if(kv.length<2) return;
-        const k = kv[0].toLowerCase().replace(/\s+/g,'').replace(/[()]/g,'');
-        let v = kv[1].trim().replace(/£/g,'').replace(/%/g,'');
-        const num = parseFloat(v);
-        out[k] = isNaN(num) ? v.toLowerCase() : num;
-      });
-      return out;
+    // Diagnosis for Review
+    function diagnose(obj){
+      const pills=[]; const tests=[];
+      const cpm=+$('r_cpm').value||null;
+      const ctr=+$('r_ctr').value||null;
+      const freq=+$('r_freq').value||null;
+      const cpc=+$('r_cpc').value||null;
+      const spend=+$('r_spend').value||null;
+      const conv=+$('r_conv').value||null;
+      const roas=+$('r_roas').value||null;
+      const pixel=$('r_pixel').value;
+      const audience=$('r_audience').value;
+
+      if(cpm){ if(cpm<=10)pills.push(pill(`CPM £${cpm.toFixed(2)} ✓`,'good'));
+        else if(cpm<=15)pills.push(pill(`CPM £${cpm.toFixed(2)} watch`,'warn'));
+        else pills.push(pill(`CPM £${cpm.toFixed(2)} high`,'bad')); }
+      if(ctr){ if(ctr>=3)pills.push(pill(`CTR ${ctr}% good`,'good'));
+        else if(ctr>=1)pills.push(pill(`CTR ${ctr}% ok`,'warn'));
+        else pills.push(pill(`CTR ${ctr}% low`,'bad')); }
+      if(cpc){ if(cpc<=1)pills.push(pill(`CPC £${cpc.toFixed(2)} ✓`,'good'));
+        else if(cpc<=2)pills.push(pill(`CPC £${cpc.toFixed(2)} watch`,'warn'));
+        else pills.push(pill(`CPC £${cpc.toFixed(2)} high`,'bad')); }
+      if(freq){ if(freq<=3)pills.push(pill(`Freq ${freq.toFixed(1)} ✓`,'good'));
+        else pills.push(pill(`Freq ${freq.toFixed(1)} rotate creative`,'warn')); }
+      if(obj==='sales' && roas){
+        if(roas>=300)pills.push(pill(`ROAS ${roas}% ✓`,'good'));
+        else if(roas>=150)pills.push(pill(`ROAS ${roas}% mid`,'warn'));
+        else pills.push(pill(`ROAS ${roas}% low`,'bad'));
+      }
+      if((obj==='leads'||obj==='email') && conv && spend){
+        const cpa=spend/conv;
+        if(cpa<=10)pills.push(pill(`CPL £${cpa.toFixed(2)} ✓`,'good'));
+        else if(cpa<=20)pills.push(pill(`CPL £${cpa.toFixed(2)} ok`,'warn'));
+        else pills.push(pill(`CPL £${cpa.toFixed(2)} high`,'bad'));
+      }
+      if(pixel==='yes')pills.push(pill('Pixel+CAPI ok','good'));
+      if(pixel==='no'){pills.push(pill('Pixel missing','bad'));
+        tests.push('Set up Pixel + CAPI and verify key events.');}
+
+      // Audience-specific advice
+      if(audience==='cold' && ctr<1){ tests.push('Cold audience + low CTR: sharpen hooks or test more relevant segments.'); }
+      if(audience==='warm' && ctr<1){ tests.push('Warm audience + low CTR: refresh creative/copy, messaging may be stale.'); }
+
+      tests.push('Test copy, creative and CTA variations systematically.');
+      if(freq>3 && (!conv||conv==0)){ tests.push('High frequency + low results: rotate creatives and reset learning.'); }
+
+      return {pills, tests};
+    }
+    function pill(label,state){
+      const span=document.createElement('span');
+      span.className=`pill ${state}`; span.textContent=label; return span;
     }
 
-    // KPI pill
-    function pill(label, state){
-      const span = document.createElement('span');
-      span.className = `pill ${state}`;
-      span.textContent = label;
-      return span;
-    }
-
-    // Diagnosis
-    function diagnose(obj, m){
-      const pills = [];
-      const tests = [];
-      const summary = [];
-
-      const get = (keys)=>keys.map(k=>m[k]).find(v=>v!==undefined);
-      const cpm = get(['cpm']);
-      const ctr = get(['ctrlink','ctr','ctr(link)']);
-      const cpc = get(['cpc']);
-      const freq = get(['frequency']);
-      const roas = get(['roas']);
-      const conv = get(['conversions','purchases','leads']);
-      const cpa = get(['cpa','cpl']);
-      const pixel = (m['pixel+capi']||m['pixel']||'').toString();
-
-      if(typeof cpm==='number'){
-        if(cpm<=10) pills.push(pill(`CPM £${cpm.toFixed(2)} ✓`, 'good'));
-        else if(cpm<=15) pills.push(pill(`CPM £${cpm.toFixed(2)} (watch)`, 'warn'));
-        else pills.push(pill(`CPM £${cpm.toFixed(2)} high`, 'bad'));
-      }
-      if(typeof ctr==='number'){
-        if(ctr>=3) pills.push(pill(`CTR(link) ${ctr.toFixed(2)}% (warm ok)`, 'good'));
-        else if(ctr>=1) pills.push(pill(`CTR(link) ${ctr.toFixed(2)}% (cold ok)`, 'warn'));
-        else pills.push(pill(`CTR(link) ${ctr.toFixed(2)}% low`, 'bad'));
-      }
-      if(typeof cpc==='number'){
-        if(cpc<=1) pills.push(pill(`CPC £${cpc.toFixed(2)} ✓`, 'good'));
-        else if(cpc<=2) pills.push(pill(`CPC £${cpc.toFixed(2)} (watch)`, 'warn'));
-        else pills.push(pill(`CPC £${cpc.toFixed(2)} high`, 'bad'));
-      }
-      if(typeof freq==='number'){
-        if(freq<=3) pills.push(pill(`Freq ${freq.toFixed(1)} ✓`, 'good'));
-        else pills.push(pill(`Freq ${freq.toFixed(1)} rotate creative`, 'warn'));
-      }
-      if(obj==='sales' && typeof roas==='number'){
-        if(roas>=300) pills.push(pill(`ROAS ${roas.toFixed(0)}% ✓`, 'good'));
-        else if(roas>=150) pills.push(pill(`ROAS ${roas.toFixed(0)}% (improve)`, 'warn'));
-        else pills.push(pill(`ROAS ${roas.toFixed(0)}% below target`, 'bad'));
-      } else if((obj==='leads' || obj==='email') && typeof cpa==='number'){
-        if(cpa<=10) pills.push(pill(`CPL £${cpa.toFixed(2)} ✓`, 'good'));
-        else if(cpa<=20) pills.push(pill(`CPL £${cpa.toFixed(2)} (ok)`, 'warn'));
-        else pills.push(pill(`CPL £${cpa.toFixed(2)} high`, 'bad'));
-      }
-      if(pixel.includes('yes')) pills.push(pill('Pixel+CAPI ok', 'good'));
-      else if(pixel.includes('no')){
-        pills.push(pill('Pixel/CAPI missing', 'bad'));
-        tests.push('Set up Pixel + CAPI and verify events (PageView, Lead, Purchase).');
-      }
-
-      if(typeof ctr==='number' && ctr<1){
-        tests.push('Creative refresh: test 3–5 new variants with clearer hooks and simpler visuals.');
-      }
-      if(typeof freq==='number' && freq>3 && (!conv || conv==0)){
-        tests.push('High frequency with low results: duplicate best audience with new creative and reset learning.');
-      }
-      if(obj==='traffic'){
-        tests.push('Optimise for Landing Page Views if possible; improve page speed and clarity.');
-      }
-      if(obj==='leads'){
-        tests.push('If Instant Form, keep it short (name + email). If Website form, ensure fast LP and strong value prop.');
-      }
-      if(obj==='sales'){
-        tests.push('Use Advantage+ Shopping or Catalog sales if ecommerce; include a warm retargeting set.');
-      }
-      if(obj==='email'){
-        tests.push('Lead magnet: deliver via email and ensure a welcome sequence nudges the next action.');
-      }
-
-      if(pills.length===0) pills.push(pill('Add more metrics for a better diagnosis', 'warn'));
-      summary.push('Based on the metrics provided, here are the key signals and recommended next tests.');
-
-      return { summary: summary.join(' '), pills, tests };
-    }
-
-    // REVIEW handler
-    const reviewOut = $('review_out');
-    const reviewExport = $('review_export');
-    $('reviewBtn').addEventListener('click', ()=>{
-      const obj = $('r_objective').value;
-      const metrics = parseMetrics($('r_metrics').value);
-      const d = diagnose(obj, metrics);
-
-      $('review_summary').textContent = d.summary;
-
-      const pillBox = $('review_pills');
-      pillBox.innerHTML = '';
+    $('reviewBtn').addEventListener('click',()=>{
+      const obj=$('r_objective').value;
+      const d=diagnose(obj);
+      $('review_summary').textContent='Based on inputs, here are the signals and next steps:';
+      const pillBox=$('review_pills'); pillBox.innerHTML='';
       d.pills.forEach(p=>pillBox.appendChild(p));
-
-      const ul = $('review_tests');
-      ul.innerHTML = '';
-      [...new Set(d.tests)].slice(0,6).forEach(t=>{
-        const li=document.createElement('li'); li.textContent=t; ul.appendChild(li);
-      });
-
-      show(reviewOut);
-      show(reviewExport);
-      $('live').textContent = 'Review advice ready';
+      const ul=$('review_tests'); ul.innerHTML='';
+      [...new Set(d.tests)].forEach(t=>{const li=document.createElement('li'); li.textContent=t; ul.appendChild(li);});
+      show($('review_out')); show($('review_export'));
     });
 
-    // PLAN handler
+    // Plan
     function getPlan(){
-      const obj = $('p_objective').value;
-      const budget = Math.max(0, +$('p_budget').value || 0);
-      const days = Math.max(1, +$('p_days').value || 1);
-      const creatives = [
-        $('pc_image').checked ? 'Image' : null,
-        $('pc_carousel').checked ? 'Carousel' : null,
-        $('pc_reel').checked ? 'Reel/Video' : null,
-        $('pc_story').checked ? 'Stories' : null
-      ].filter(Boolean);
+      const obj=$('p_objective').value;
+      const budget=+$('p_budget').value||0;
+      const days=+$('p_days').value||0;
+      const creatives=[
+        $('pc_image').checked?'Image':null,
+        $('pc_carousel').checked?'Carousel':null,
+        $('pc_reel').checked?'Reel/Video':null,
+        $('pc_story').checked?'Stories':null].filter(Boolean);
+      const optimiseFor=$('p_optimise')?.value||null;
+      const leadMethod=$('p_leadMethod')?.value||null;
+      const roasGoal=+$('p_roas').value||0;
+      const welcome=$('p_welcome')?.value||null;
 
-      const optimiseFor = $('p_optimise')?.value || null;
-      const leadMethod = $('p_leadMethod')?.value || null;
-      const roasGoal = +($('p_roas')?.value || 0);
-      const welcomeFlow = $('p_welcome')?.value || null;
+      let campaignType=''; const tips=[];
+      if(obj==='traffic'){campaignType=(optimiseFor==='clicks')?'Traffic (Link Clicks)':'Traffic (LPV)';
+        tips.push('Make landing page fast + clear.'); tips.push('Use strong CTA.');}
+      if(obj==='leads'){campaignType=(leadMethod==='instant')?'Lead Gen (Instant Form)':'Leads to Website';
+        tips.push('Offer clear value (guide/discount).'); tips.push('Keep forms short.');}
+      if(obj==='sales'){campaignType='Sales / Conversions';
+        tips.push('Verify Pixel + CAPI.'); tips.push('Test copy/creative/CTA.'); if(roasGoal)tips.push(`Aim for ROAS ≈ ${roasGoal}%.`);}
+      if(obj==='email'){campaignType='Leads (List Growth)';
+        tips.push('Provide a useful lead magnet.'); if(welcome==='no')tips.push('Set up a welcome automation.');}
 
-      let campaignType = '';
-      const tips = [];
+      if(budget<10 && days<28){tips.push('For first campaigns, aim ≥£10/day and 21–28 days to allow testing.');}
 
-      if (obj==='traffic'){
-        campaignType = (optimiseFor==='clicks')
-          ? 'Traffic (optimise for Link Clicks)'
-          : 'Traffic (optimise for Landing Page Views)';
-        tips.push('Make the landing page fast and clear (reduce bounces).');
-        tips.push('Use a strong, singular call-to-action on page.');
-        if (optimiseFor!=='lpv') tips.push('If available, switch to LPV for better quality.');
-      } else if (obj==='leads'){
-        campaignType = (leadMethod==='instant')
-          ? 'Lead Generation (Instant Forms)'
-          : 'Leads to Website (Conversions to form submit)';
-        tips.push('Offer a clear value exchange (guide, discount, webinar).');
-        tips.push('Keep forms short — name + email to start.');
-      } else if (obj==='sales'){
-        campaignType = 'Sales / Conversions (with Pixel + CAPI)';
-        tips.push('Verify your purchase event (Pixel + CAPI).');
-        tips.push('Use Advantage+ Shopping or Catalog if you sell products.');
-        if (roasGoal) tips.push(`Test towards ROAS ≈ ${roasGoal}% (break-even and up).`);
-      } else if (obj==='email'){
-        campaignType = 'Leads (List Growth)';
-        tips.push('Give a useful lead magnet (checklist, template or mini-guide).');
-        if (welcomeFlow==='no') tips.push('Set a welcome + thank-you automation before launching.');
-        else tips.push('Ensure the welcome flow nudges the next step (book/call/browse).');
-      }
+      const adSets=budget>=60?2:1;
+      const variants=creatives.length?Math.min(5,creatives.length*2):3;
+      const plan=`Run ${adSets} ad set${adSets>1?'s':''} with ${variants} variants across ${creatives.length?creatives.join(', '):'multiple formats'}.
+Ensure creative is resized for Stories and all placements.`;
 
-      const adSets = budget >= 60 ? 2 : 1;
-      const variants = creatives.length ? Math.min(5, creatives.length * 2) : 3;
-      const useStories = creatives.includes('Stories');
+      const kpis=['Frequency ≤3; if over with no results → refresh creatives.',
+                  'CPM aim <£10 (expect peaks Q4).'];
+      if(obj!=='sales'){kpis.push('CTR warm ≥3%; cold ≥1%.');}
+      else{ kpis.push('ROAS: set goal (e.g. 300%) and give 3–7 days.');}
 
-      const plan = `Run ${adSets} ad set${adSets>1?'s':''} with ${variants} creative variants total across ${creatives.length?creatives.join(', '):'at least 2 formats (e.g. Image + Reel)'}.
-${useStories ? 'Add a Stories cut for anything vertical.' : 'Consider a Stories version to capture vertical placements.'}`;
-
-      const generic = [
-        'Use 3–5 creatives to find a winner quickly.',
-        'Refresh ads every 2–3 weeks to avoid fatigue.',
-        'Add a retargeting ad for warm viewers/clickers.',
-        'Keep copy clear, short and human.',
-        'Use plain backgrounds and bold text for clarity.'
-      ];
-      while (tips.length < 3) tips.push(generic.shift());
-      if (tips.length < 5) tips.push('Add UTMs and check post-click behaviour in GA.');
-
-      const kpis = [];
-      kpis.push('Frequency: if it creeps over 3 and sales/leads aren’t coming, change creative or copy.');
-      kpis.push('CPM: aim under £10 if possible (can spike in peak seasons).');
-      if (obj==='traffic' || obj==='email' || obj==='leads') {
-        kpis.push('CTR (link) — Warm audiences: target ≥ 3%.');
-        kpis.push('CTR (link) — Cold audiences: target ≥ 1%.');
-      }
-      if (obj==='sales' && roasGoal){
-        kpis.push(`ROAS goal: ≈ ${roasGoal}% (use as a guide while testing).`);
-      } else if (obj==='sales'){
-        kpis.push('ROAS: set a % goal (e.g., 300%) and give tests 3–7 days to learn.');
-      }
-
-      return { campaignType, plan, tips, kpis };
+      return {campaignType, plan, tips, kpis};
     }
-
-    const planOut = $('plan_out');
-    const planExport = $('plan_export');
-    $('planBtn').addEventListener('click', ()=>{
-      const r = getPlan();
-      $('p_campaign').textContent = r.campaignType;
-      $('p_plan').textContent = r.plan;
-
-      const tipsUl = $('p_tips'); tipsUl.innerHTML='';
-      r.tips.slice(0,5).forEach(t=>{ const li=document.createElement('li'); li.textContent=t; tipsUl.appendChild(li); });
-
-      const kpiUl = $('p_kpis'); kpiUl.innerHTML='';
-      r.kpis.forEach(t=>{ const li=document.createElement('li'); li.textContent=t; kpiUl.appendChild(li); });
-
-      show(planOut);
-      show(planExport);
-      $('live').textContent = 'Plan advice ready';
+    $('planBtn').addEventListener('click',()=>{
+      const r=getPlan();
+      $('p_campaign').textContent=r.campaignType;
+      $('p_plan').textContent=r.plan;
+      const tipsUl=$('p_tips'); tipsUl.innerHTML='';
+      r.tips.forEach(t=>{const li=document.createElement('li'); li.textContent=t; tipsUl.appendChild(li);});
+      const kpiUl=$('p_kpis'); kpiUl.innerHTML='';
+      r.kpis.forEach(k=>{const li=document.createElement('li'); li.textContent=k; kpiUl.appendChild(li);});
+      show($('plan_out')); show($('plan_export'));
     });
 
-    // -------- Export helpers (copy + PDF/print) --------
-    function collectTextFrom(container){
-      const lines = [];
-      container.querySelectorAll('h3, p, li, .pill').forEach(el=>{
-        const tag = el.tagName.toLowerCase();
-        if(tag==='h3'){ lines.push(`\n## ${el.textContent.trim()}`); }
-        else if(tag==='li'){ lines.push(`- ${el.textContent.trim()}`); }
-        else { const t = el.textContent.trim(); if(t) lines.push(t); }
-      });
+    // Export helpers
+    function collectText(container){
+      const lines=[]; container.querySelectorAll('h3,p,li,.pill').forEach(el=>{const t=el.textContent.trim(); if(t)lines.push(t);});
       return lines.join('\n');
     }
-
     async function copyResults(container){
-      const txt = collectTextFrom(container).trim();
-      if(!txt){ alert('No results to copy yet.'); return; }
-      try{
-        await navigator.clipboard.writeText(txt);
-        alert('Results copied to clipboard ✅');
-      }catch(e){
-        // fallback
-        const ta=document.createElement('textarea');
-        ta.value = txt; document.body.appendChild(ta); ta.select();
-        document.execCommand('copy'); document.body.removeChild(ta);
-        alert('Results copied to clipboard ✅');
-      }
+      const txt=collectText(container).trim(); if(!txt){alert('No results.');return;}
+      try{await navigator.clipboard.writeText(txt); alert('Results copied ✅');}
+      catch{alert('Copy failed');}
     }
-
-    function printSection(container){
-      // Temporarily show only the container by toggling classes, then window.print()
-      // Our @media print hides everything except .out within .card — so just ensure this .out is visible.
-      if(container.classList.contains('hide')){ alert('Generate results first.'); return; }
-      window.print();
-    }
-
-    // Wire buttons
-    $('review_copy').addEventListener('click', ()=>copyResults(reviewOut));
-    $('plan_copy').addEventListener('click', ()=>copyResults(planOut));
-    $('review_pdf').addEventListener('click', ()=>printSection(reviewOut));
-    $('plan_pdf').addEventListener('click', ()=>printSection(planOut));
-
+    function printSection(container){ if(container.classList.contains('hide')){alert('Generate results first.');return;} window.print();}
+    $('review_copy').addEventListener('click',()=>copyResults($('review_out')));
+    $('plan_copy').addEventListener('click',()=>copyResults($('plan_out')));
+    $('review_pdf').addEventListener('click',()=>printSection($('review_out')));
+    $('plan_pdf').addEventListener('click',()=>printSection($('plan_out')));
   </script>
 </body>
 </html>
+
