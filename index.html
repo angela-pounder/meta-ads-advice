@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Meta Ads Advisor • Clydeside Social</title>
-  <meta name="description" content="Review a live Meta ads campaign or plan a new one. Get recommendations, creative tests, and KPI targets."/>
-  <!-- Cache-busting -->
+  <meta name="description" content="Plain-English guidance to review a live Meta ads campaign or plan a new one. No jargon, clear next steps."/>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
   <meta http-equiv="Pragma" content="no-cache"/>
   <meta http-equiv="Expires" content="0"/>
@@ -25,7 +24,8 @@
     }
     .wrap{max-width:880px; width:100%}
     .logo{max-width:180px; display:block; margin:0 auto 10px}
-    h1{margin:6px 0 16px; text-align:center; color:var(--pink)}
+    h1{margin:6px 0 8px; text-align:center; color:var(--pink)}
+    .sub{margin:0 auto 14px; text-align:center; color:var(--muted); max-width:720px}
     .tabs{display:flex; gap:8px; margin:12px auto 16px; justify-content:center; flex-wrap:wrap}
     .tabbtn{
       border:2px solid var(--pink); background:#fff; color:var(--pink);
@@ -37,6 +37,7 @@
       border-radius:var(--radius); padding:22px; box-shadow:var(--shadow);
     }
     label{display:block; font-weight:bold; margin:12px 0 6px}
+    .help{display:block; font-weight:normal; color:var(--muted); margin-top:4px}
     input[type="number"], select{
       width:100%; padding:12px; border:1px solid #ddd; border-radius:12px; background:#fff; font-family:inherit;
     }
@@ -67,66 +68,78 @@
     }
     footer{margin-top:16px; text-align:center; font-size:.85rem; opacity:.75}
     #live{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+    details{background:#fafafa;border:1px solid #eee;border-radius:10px;padding:10px;margin-top:8px}
+    details summary{cursor:pointer;font-weight:bold}
   </style>
 </head>
 <body>
   <div class="wrap">
     <img class="logo" src="logo.png" alt="Clydeside Social logo" onerror="this.style.display='none'">
     <h1>Meta Ads Advisor</h1>
-    <p class="muted" style="text-align:center;margin:-4px 0 8px">Review a live campaign or plan a new one — quick, clear guidance you can act on.</p>
+    <p class="sub">A simple checker to help you understand what’s working, what’s wasting budget, and what to try next — in plain English.</p>
 
-    <div class="tabs">
-      <button class="tabbtn active" data-tab="review">Review existing campaign</button>
-      <button class="tabbtn" data-tab="plan">Plan a new campaign</button>
+    <div class="tabs" role="tablist" aria-label="Modes">
+      <button class="tabbtn active" data-tab="review" role="tab" aria-selected="true">Review an existing campaign</button>
+      <button class="tabbtn" data-tab="plan" role="tab" aria-selected="false">Plan a new campaign</button>
     </div>
 
     <!-- REVIEW MODE -->
-    <div class="card" id="tab_review">
+    <div class="card" id="tab_review" role="tabpanel" aria-labelledby="review">
       <label for="r_objective">Campaign type</label>
-      <select id="r_objective">
-        <option value="traffic">Traffic</option>
-        <option value="leads">Leads</option>
-        <option value="sales">Sales</option>
+      <select id="r_objective" aria-label="Campaign type">
+        <option value="traffic">Traffic (send people to a page)</option>
+        <option value="leads">Leads (get enquiries)</option>
+        <option value="sales">Sales (track purchases)</option>
         <option value="email">Email list growth</option>
       </select>
 
       <div class="row">
         <div>
-          <label for="r_cpm">CPM (£)</label>
-          <input type="number" id="r_cpm" step="0.01" required>
+          <label for="r_cpm">Cost per 1,000 views (CPM)</label>
+          <span class="help">Lower is better. Under £10 is usually healthy.</span>
+          <input type="number" id="r_cpm" step="0.01" placeholder="e.g. 8.50">
         </div>
         <div>
-          <label for="r_ctr">CTR (link %)</label>
-          <input type="number" id="r_ctr" step="0.1" required>
+          <label for="r_ctr">Click-through rate % (CTR)</label>
+          <span class="help">What % of people click? Warm ≥3%, cold ≥1% is a decent guide.</span>
+          <input type="number" id="r_ctr" step="0.1" placeholder="e.g. 1.2">
         </div>
       </div>
+
       <div class="row">
         <div>
           <label for="r_freq">Frequency</label>
-          <input type="number" id="r_freq" step="0.1" required>
+          <span class="help">How often the same person sees the ad. Try to keep ≤3.</span>
+          <input type="number" id="r_freq" step="0.1" placeholder="e.g. 2.1">
         </div>
         <div>
-          <label for="r_cpc">CPC (£)</label>
-          <input type="number" id="r_cpc" step="0.01" required>
+          <label for="r_cpc">Cost per click £ (CPC)</label>
+          <span class="help">Under £1 is strong. £1–£2 is okay. Higher = test audiences/creative.</span>
+          <input type="number" id="r_cpc" step="0.01" placeholder="e.g. 0.72">
         </div>
       </div>
+
       <div class="row">
         <div>
-          <label for="r_spend">Spend (£)</label>
-          <input type="number" id="r_spend" step="0.01">
+          <label for="r_spend">Total spend £ (optional)</label>
+          <input type="number" id="r_spend" step="0.01" placeholder="e.g. 120">
         </div>
         <div>
-          <label for="r_conv">Conversions</label>
-          <input type="number" id="r_conv" step="1">
+          <label for="r_conv">Leads / sales (optional)</label>
+          <input type="number" id="r_conv" step="1" placeholder="e.g. 9">
         </div>
       </div>
+
       <div id="r_roasBlock" class="hide">
-        <label for="r_roas">ROAS (%)</label>
-        <input type="number" id="r_roas" step="0.1">
+        <label for="r_roas">Return on ad spend % (ROAS)</label>
+        <span class="help">If you spend £100 and make £300 back, ROAS is 300%.</span>
+        <input type="number" id="r_roas" step="0.1" placeholder="e.g. 250">
       </div>
+
       <div class="row">
         <div>
-          <label for="r_pixel">Pixel + CAPI?</label>
+          <label for="r_pixel">Is tracking set up?</label>
+          <span class="help">Facebook Pixel / CAPI. This confirms results are real.</span>
           <select id="r_pixel">
             <option value="yes">Yes</option>
             <option value="no">No</option>
@@ -134,34 +147,43 @@
           </select>
         </div>
         <div>
-          <label for="r_audience">Audience type</label>
+          <label for="r_audience">Who are you showing it to?</label>
+          <span class="help">Cold = new people. Warm = followers/visitors/email list.</span>
           <select id="r_audience">
-            <option value="cold">Cold</option>
-            <option value="warm">Warm</option>
+            <option value="cold">Cold (new people)</option>
+            <option value="warm">Warm (already know you)</option>
           </select>
         </div>
       </div>
 
-      <button class="cta" id="reviewBtn">Get diagnosis & next steps</button>
+      <button class="cta" id="reviewBtn">Get clear next steps</button>
 
-      <div class="exportbar hide" id="review_export">
+      <div class="exportbar hide" id="review_export" aria-live="polite">
         <button class="ghost" id="review_copy">Copy results</button>
         <button class="ghost" id="review_pdf">Download PDF</button>
       </div>
 
       <div id="review_out" class="out hide">
-        <h3>Diagnosis</h3>
-        <p id="review_summary"></p>
-        <div id="review_pills"></div>
+        <h3>What this tells us</h3>
+        <p id="review_summary" class="muted"></p>
+        <div id="review_pills" aria-label="Quick status"></div>
+
         <div class="kpi">
-          <h3>Recommended next tests</h3>
+          <h3>Your next moves</h3>
           <ul id="review_tests" class="tips"></ul>
+          <details>
+            <summary>What do these metrics mean?</summary>
+            <p><strong>CPM</strong>: cost to show your ad 1,000 times. Lower = you’re reaching people efficiently.</p>
+            <p><strong>CTR</strong>: % of people who click. Low CTR means the ad isn’t catching attention.</p>
+            <p><strong>CPC</strong>: what each click costs. High CPC = try new audiences or creative.</p>
+            <p><strong>Frequency</strong>: how often the same person sees the ad. Too high = ad fatigue.</p>
+          </details>
         </div>
       </div>
     </div>
 
     <!-- PLAN MODE -->
-    <div class="card hide" id="tab_plan">
+    <div class="card hide" id="tab_plan" role="tabpanel" aria-labelledby="plan">
       <label for="p_objective">What do you want?</label>
       <select id="p_objective">
         <option value="traffic">More website visitors (Traffic)</option>
@@ -172,12 +194,14 @@
 
       <div class="row">
         <div>
-          <label for="p_budget">Daily budget (£)</label>
-          <input type="number" id="p_budget" min="0" step="1"/>
+          <label for="p_budget">Daily budget £</label>
+          <span class="help">If you’re testing, £10/day for 3–4 weeks is a sensible start.</span>
+          <input type="number" id="p_budget" min="0" step="1" placeholder="e.g. 10"/>
         </div>
         <div>
           <label for="p_days">Campaign length (days)</label>
-          <input type="number" id="p_days" min="1" step="1"/>
+          <span class="help">Aim for 21–28 days so Meta can learn and you can test.</span>
+          <input type="number" id="p_days" min="1" step="1" placeholder="e.g. 28"/>
         </div>
       </div>
 
@@ -190,11 +214,11 @@
       </div>
 
       <div id="p_salesFields" class="hide">
-        <label for="p_roas">Target ROAS goal (%)</label>
-        <input type="number" id="p_roas" min="0" step="0.1"/>
+        <label for="p_roas">Target ROAS goal % (optional)</label>
+        <input type="number" id="p_roas" min="0" step="0.1" placeholder="e.g. 300"/>
       </div>
 
-      <button class="cta" id="planBtn">Get plan</button>
+      <button class="cta" id="planBtn">Build my plan</button>
 
       <div class="exportbar hide" id="plan_export">
         <button class="ghost" id="plan_copy">Copy results</button>
@@ -204,14 +228,18 @@
       <div id="plan_out" class="out hide">
         <h3>Recommended campaign</h3>
         <p id="p_campaign" class="muted"></p>
+
         <div class="hr"></div>
         <h3>Creative plan</h3>
         <p id="p_plan"></p>
+
         <h3>Quick tips</h3>
         <ul id="p_tips" class="tips"></ul>
+
         <div class="kpi">
-          <h3>KPI Watchlist</h3>
+          <h3>KPI watchlist</h3>
           <ul id="p_kpis" class="tips"></ul>
+          <p class="note">Ads aren’t “set and forget”. Check weekly; tweak one thing at a time.</p>
         </div>
       </div>
     </div>
@@ -232,14 +260,15 @@
       });
     });
 
-    // Show ROAS only for Sales review
-    $('r_objective').addEventListener('change',()=>{
-      if($('r_objective').value==='sales') show($('r_roasBlock')); else hide($('r_roasBlock'));
-    });
+    // Show ROAS only for Sales review + show sales fields in Plan
+    const toggleRoas=()=>{ $('r_objective').value==='sales' ? show($('r_roasBlock')) : hide($('r_roasBlock')); };
+    $('r_objective').addEventListener('change',toggleRoas); toggleRoas();
+    const togglePlanRoas=()=>{ $('p_objective').value==='sales' ? show($('p_salesFields')) : hide($('p_salesFields')); };
+    $('p_objective').addEventListener('change',togglePlanRoas); togglePlanRoas();
 
-    function pill(label,state){const s=document.createElement('span');s.className=`pill ${state}`;s.textContent=label;return s;}
+    function pill(label,state,title){const s=document.createElement('span');s.className=`pill ${state}`;s.textContent=label;if(title)s.title=title;return s;}
 
-    // Review diagnosis
+    // Review diagnosis (plain-English coaching)
     $('reviewBtn').addEventListener('click',()=>{
       const obj=$('r_objective').value;
       const cpm=+$('r_cpm').value||null, ctr=+$('r_ctr').value||null, freq=+$('r_freq').value||null;
@@ -248,52 +277,101 @@
 
       const pills=[], tests=[];
 
-      if(cpm){ if(cpm<=10)pills.push(pill(`CPM £${cpm.toFixed(2)} ✓`,'good')); else if(cpm<=15)pills.push(pill(`CPM £${cpm.toFixed(2)} watch`,'warn')); else pills.push(pill(`CPM £${cpm.toFixed(2)} high`,'bad')); }
-      if(ctr){ if(ctr>=3)pills.push(pill(`CTR ${ctr}% good`,'good')); else if(ctr>=1)pills.push(pill(`CTR ${ctr}% ok`,'warn')); else pills.push(pill(`CTR ${ctr}% low`,'bad')); }
-      if(cpc){ if(cpc<=1)pills.push(pill(`CPC £${cpc.toFixed(2)} ✓`,'good')); else if(cpc<=2)pills.push(pill(`CPC £${cpc.toFixed(2)} watch`,'warn')); else pills.push(pill(`CPC £${cpc.toFixed(2)} high`,'bad')); }
-      if(freq){ if(freq<=3)pills.push(pill(`Freq ${freq.toFixed(1)} ✓`,'good')); else pills.push(pill(`Freq ${freq.toFixed(1)} high`,'warn')); }
+      // CPM
+      if(cpm!==null){
+        if(cpm<=10)pills.push(pill(`CPM £${cpm.toFixed(2)} • efficient`,'good','You’re reaching people at a sensible cost.'));
+        else if(cpm<=15)pills.push(pill(`CPM £${cpm.toFixed(2)} • OK`,'warn','Costs are creeping up – keep an eye on it, especially in Q4.'));
+        else pills.push(pill(`CPM £${cpm.toFixed(2)} • high`,'bad','Costly reach. Narrow targeting or refresh creative.'));
+      }
 
-      if(obj==='sales' && roas){ if(roas>=300)pills.push(pill(`ROAS ${roas}% ✓`,'good')); else if(roas>=150)pills.push(pill(`ROAS ${roas}% mid`,'warn')); else pills.push(pill(`ROAS ${roas}% low`,'bad')); }
+      // CTR
+      if(ctr!==null){
+        if(ctr>=3)pills.push(pill(`CTR ${ctr}% • strong`,'good','People are clicking – keep feeding fresh creative.'));
+        else if(ctr>=1)pills.push(pill(`CTR ${ctr}% • needs work`,'warn','Clicks are fine but could be better with a tighter hook.'));
+        else pills.push(pill(`CTR ${ctr}% • low`,'bad','Ad isn’t catching attention. Try a bolder first line or clearer benefit.'));
+      }
 
-      if((obj==='leads'||obj==='email') && conv && spend){ const cpa=spend/conv; if(cpa<=10)pills.push(pill(`CPL £${cpa.toFixed(2)} ✓`,'good')); else if(cpa<=20)pills.push(pill(`CPL £${cpa.toFixed(2)} ok`,'warn')); else pills.push(pill(`CPL £${cpa.toFixed(2)} high`,'bad')); }
+      // CPC
+      if(cpc!==null){
+        if(cpc<=1)pills.push(pill(`CPC £${cpc.toFixed(2)} • good`,'good','Clicks are cost-effective.'));
+        else if(cpc<=2)pills.push(pill(`CPC £${cpc.toFixed(2)} • OK`,'warn','Not bad – test audiences/creatives to bring it down.'));
+        else pills.push(pill(`CPC £${cpc.toFixed(2)} • high`,'bad','Each click is pricey. Try broader testing or different formats.'));
+      }
 
-      if(pixel==='no'){pills.push(pill('Pixel missing','bad')); tests.push('Set up Pixel + CAPI and verify key events.');}
+      // Frequency
+      if(freq!==null){
+        if(freq<=3)pills.push(pill(`Frequency ${freq.toFixed(1)} • fine`,'good','People aren’t being over-shown this.'));
+        else pills.push(pill(`Frequency ${freq.toFixed(1)} • high`,'warn','Same people are seeing this a lot. Refresh creative or expand reach.'));
+      }
 
-      if(audience==='cold'&&ctr<1){tests.push('Cold audience + low CTR: sharpen hooks or test more relevant segments.');}
-      if(audience==='warm'&&ctr<1){tests.push('Warm audience + low CTR: refresh creative/copy, messaging may be stale.');}
+      // ROAS
+      if(obj==='sales' && roas){
+        if(roas>=300)pills.push(pill(`ROAS ${roas}% • healthy`,'good','£100 in → £300+ out is a solid target.'));
+        else if(roas>=150)pills.push(pill(`ROAS ${roas}% • middling`,'warn','You’re close – tighten audiences and product-page clarity.'));
+        else pills.push(pill(`ROAS ${roas}% • low`,'bad','Either tracking is off or the offer/page needs work.'));
+      }
 
-      tests.push('Manually test copy, creative and CTA variations (no Advantage+).');
+      // CPL (for leads/email)
+      if((obj==='leads'||obj==='email') && conv && spend){
+        const cpa=spend/conv;
+        if(cpa<=10)pills.push(pill(`Cost per lead £${cpa.toFixed(2)} • strong`,'good','Great value – keep iterating.'));
+        else if(cpa<=20)pills.push(pill(`Cost per lead £${cpa.toFixed(2)} • OK`,'warn','Room to improve – test your lead magnet or form friction.'));
+        else pills.push(pill(`Cost per lead £${cpa.toFixed(2)} • high`,'bad','Try a clearer value exchange and shorter form.'));
+      }
 
-      $('review_summary').textContent='Based on your inputs:';
+      // Tracking
+      if(pixel==='no'){pills.push(pill('Tracking missing','bad','Set up Pixel + CAPI so results are trustworthy.')); tests.push('Set up Facebook Pixel + CAPI and verify key events (PageView, Lead, Purchase).');}
+      if(pixel==='unknown'){tests.push('Double-check tracking: if Pixel/CAPI aren’t firing, results will be unreliable.');}
+
+      // Audience + CTR coaching
+      if(audience==='cold' && ctr!==null && ctr<1){tests.push('Cold audience + low CTR: sharpen the hook and lead with the problem you solve. Test 2–3 audience ideas.');}
+      if(audience==='warm' && ctr!==null && ctr<1){tests.push('Warm audience + low CTR: your regulars are tuning out. Refresh creative and update the offer.');}
+
+      // Universal, human advice
+      tests.push('Test one thing at a time: headline, image/video, or audience. Give each test 3–5 days.');
+      tests.push('Keep landing page simple, fast, and obvious: one clear action, above the fold.');
+
+      $('review_summary').textContent='Here’s the plain-English read on your numbers. Green = fine, amber = keep an eye on it, red = fix first.';
       const pb=$('review_pills'); pb.innerHTML=''; pills.forEach(p=>pb.appendChild(p));
       const ul=$('review_tests'); ul.innerHTML=''; tests.forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li);});
 
       show($('review_out')); show($('review_export'));
     });
 
-    // Plan
+    // Plan builder
     $('planBtn').addEventListener('click',()=>{
       const obj=$('p_objective').value, budget=+$('p_budget').value||0, days=+$('p_days').value||0;
-      const creatives=['pc_image','pc_carousel','pc_reel','pc_story'].map(id=>$(''+id).checked?$(id).nextSibling.textContent.trim():null).filter(Boolean);
+      const creatives=['pc_image','pc_carousel','pc_reel','pc_story'].map(id=>$(id).checked?$(id).nextSibling.textContent.trim():null).filter(Boolean);
       const roasGoal=+$('p_roas').value||0;
       let tips=[], plan='', kpis=[];
 
       let campaignType='';
-      if(obj==='traffic'){campaignType='Traffic';tips.push('Make landing page fast and clear.');}
-      if(obj==='leads'){campaignType='Leads';tips.push('Offer clear value exchange (guide/discount).');}
-      if(obj==='sales'){campaignType='Sales / Conversions';tips.push('Verify Pixel + CAPI before scaling.');if(roasGoal)tips.push(`Aim for ROAS ≈ ${roasGoal}%.`);}
-      if(obj==='email'){campaignType='List Growth';tips.push('Give a useful lead magnet + welcome automation.');}
+      if(obj==='traffic'){campaignType='Traffic — get people onto a useful page.';tips.push('Make the page fast and clear. Put the main action above the fold.');}
+      if(obj==='leads'){campaignType='Leads — get enquiries or sign-ups.';tips.push('Offer a clear value exchange (guide/discount/checklist). Keep the form short.');}
+      if(obj==='sales'){
+        campaignType='Sales — track purchases properly before you scale.';
+        tips.push('Confirm Pixel + CAPI are firing Purchase with value.');
+        if(roasGoal)tips.push(`Work towards ROAS ≈ ${roasGoal}% once out of learning.`);
+      }
+      if(obj==='email'){campaignType='List growth — build your audience cheaply and steadily.';tips.push('Use a strong lead magnet and an automatic welcome sequence.');}
 
-      if(budget<10&&days<28){tips.push('First campaigns: aim for £10/day and 21–28 days to allow testing.');}
+      if(budget<10 && days<21){tips.push('For clean learning, try ~£10/day for at least 21 days.');}
 
-      if(budget<30){plan='Start with 2 creatives, and have a 3rd ready to swap in if performance dips.';}
-      else{plan='Run 2–3 creatives to start, and keep one extra in reserve for testing.';}
-      plan+=`\nEnsure creative is resized for Stories and all placements.`;
+      // Creative guidance
+      if(budget<30){
+        plan='Start with 2 creatives and keep a 3rd ready if results dip. Resize for Stories placements.';
+      }else{
+        plan='Run 2–3 creatives and keep one extra in reserve for testing. Resize for Stories placements.';
+      }
+      if(creatives.length){ plan+=` You’ve chosen: ${creatives.join(', ')}.`; }
 
-      kpis=['Frequency ≤3; refresh creative if higher with no results.','CPM target <£10 (expect higher in Q4).'];
-      if(obj!=='sales'){kpis.push('CTR warm ≥3%; cold ≥1%.');}else{kpis.push('ROAS: set goal (e.g. 300%) and allow 3–7 days for learning.');}
+      // KPIs
+      kpis=['Frequency ≤3 — if higher with no results, refresh creative.','CPM target <£10 (expect higher around big retail dates).'];
+      if(obj!=='sales'){kpis.push('CTR guide: warm ≥3%, cold ≥1%.');}
+      else{kpis.push('ROAS: set a goal (e.g. 300%) and give 3–7 days to exit learning.');}
 
-      $('p_campaign').textContent=campaignType; $('p_plan').textContent=plan;
+      $('p_campaign').textContent=campaignType;
+      $('p_plan').textContent=plan;
       const tUl=$('p_tips'); tUl.innerHTML=''; tips.forEach(t=>{const li=document.createElement('li');li.textContent=t;tUl.appendChild(li);});
       const kUl=$('p_kpis'); kUl.innerHTML=''; kpis.forEach(k=>{const li=document.createElement('li');li.textContent=k;kUl.appendChild(li);});
 
@@ -311,5 +389,6 @@
   </script>
 </body>
 </html>
+
 
 
